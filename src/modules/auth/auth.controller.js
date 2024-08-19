@@ -38,7 +38,7 @@ export const signup = async (req, res, next) => {
     const token = generateToken({ payload: { _id: createdUser._id } })
      sendEmail({
         to: email, subject: 'verify account', html: `<p>to verify your account please click 
-        <a href='${req.protocol}://${req.headers.host}/auth/verify-account?token=${token}'>Verify Account</a>
+        <a href='https://carrent-assignment.onrender.com/auth/verify-account?token=${token}'>Verify Account</a>
          </p>`
     })
     // send response
