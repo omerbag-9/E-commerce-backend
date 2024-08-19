@@ -37,6 +37,4 @@ reviewRouter.delete('/delete-review/:reviewId',
 )
 
 
-// todo delete review (user who made review , admin) can delete
-
 export default reviewRouter
