@@ -102,21 +102,33 @@ export const updateCategory = async (req, res, next) => {
 
 
 export const updateCategoryCloud = async (req, res, next) => {
-    const { categoryId } = req.params
-    const category = await Category.findById(categoryId)
+    const { categoryId } = req.params;
+    const category = await Category.findById(categoryId);
+    if (!category) {
+        return res.status(404).json({ message: "Category not found", success: false });
+    }
+
     if (req.file) {
-        const { secure_url, public_id } = await cloudinary.uploader.upload(req.file.path, { public_id: category.image.public_id })
-        req.body.image = { secure_url, public_id }
+        const { secure_url, public_id } = await cloudinary.uploader.upload(req.file.path, {
+            public_id: category.image.public_id,
+            overwrite: true
+        });
+        req.body.image = { secure_url, public_id };
     }
-    category.name = req.body.name || category.name
+
+    category.name = req.body.name || category.name;
+
     if (req.body.image) {
-        // delete old image from cloudinary
-        await cloudinary.uploader.destroy(category.image.public_id)
-        // update new image
-        category.image = req.body.image
+        // delete old image from cloudinary if a new one is uploaded
+        if (category.image.public_id) {
+            await cloudinary.uploader.destroy(category.image.public_id);
+        }
+        // update the category image with the new one
+        category.image = req.body.image;
     }
-    const updatedCategory = await category.save()
-    return res.status(200).json({ message: messages.category.updatedSuccessfully, success: true, data: updatedCategory })
+
+    const updatedCategory = await category.save();
+    return res.status(200).json({ message: "Category updated successfully", success: true, data: updatedCategory });
 }
 
 export const deletCategory = async (req, res, next) => {
