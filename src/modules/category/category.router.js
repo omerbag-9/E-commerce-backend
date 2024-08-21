@@ -2,7 +2,7 @@ import { Router } from "express";
 import { asyncHandler, cloudUpload, fileUpload, roles } from "../../utils/index.js";
 import { isValid } from "../../middleware/validation.js";
 import { createCategoryVal, getCategoryVal, updateCategoryVal } from "./category.validation.js";
-import { createCategory, deletCategory, getCategories, getCategory, updateCategory , createCategoryCloud, deletCategoryCloud } from "./category.controller.js";
+import { createCategory, deletCategory, getCategories, getCategory, updateCategory , createCategoryCloud, deletCategoryCloud, updateCategoryCloud } from "./category.controller.js";
 import { isAuthenticated, isAuthorized } from "../../middleware/authentication.js";
 import { isActive } from "../../middleware/isActive.js";
 
@@ -44,7 +44,7 @@ categoryRouter.put('/cloud/:categoryId',
     cloudUpload().single('image'),
     isValid(updateCategoryVal),
     isActive(),
-    asyncHandler(updateCategory)
+    asyncHandler(updateCategoryCloud)
 )
 
 // delete category 

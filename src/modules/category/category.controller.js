@@ -102,33 +102,39 @@ export const updateCategory = async (req, res, next) => {
 
 
 export const updateCategoryCloud = async (req, res, next) => {
-    const { categoryId } = req.params;
-    const category = await Category.findById(categoryId);
-    if (!category) {
-        return res.status(404).json({ message: "Category not found", success: false });
+    // get data from req
+const { name } = req.body;
+const {categoryId} = req.params
+// check category
+const category = await Category.findById(categoryId);
+if (!category) {
+    return next(new AppError(messages.category.notFound, 404));
+}
+// prepare data
+category.name = name
+category.slug = slugify(name)
+// handle image
+if(req.file){
+    // delete old image
+    if(category.image?.public_id){
+        await cloudinary.uploader.destroy(category.image.public_id)
     }
+    // upload new image
+    const {secure_url,public_id}= await cloudinary.uploader.upload(req.file.path,
+        {
+            folder: 'ecommerce/category'
+            // public_id:category.image.public_id
+        })
+    category.image = {secure_url,public_id}
+}
+// update category
+const updateCategory = await category.save();
+if (!updateCategory) {
+    return next(new AppError(messages.category.failToUpdate, 500));
+}
+// Send response
+return res.status(200).json({ message: messages.category.updateSuccessfully, success: true, data: updateCategory });
 
-    if (req.file) {
-        const { secure_url, public_id } = await cloudinary.uploader.upload(req.file.path, {
-            public_id: category.image.public_id,
-            overwrite: true
-        });
-        req.body.image = { secure_url, public_id };
-    }
-
-    category.name = req.body.name || category.name;
-
-    if (req.body.image) {
-        // delete old image from cloudinary if a new one is uploaded
-        if (category.image.public_id) {
-            await cloudinary.uploader.destroy(category.image.public_id);
-        }
-        // update the category image with the new one
-        category.image = req.body.image;
-    }
-
-    const updatedCategory = await category.save();
-    return res.status(200).json({ message: "Category updated successfully", success: true, data: updatedCategory });
 }
 
 export const deletCategory = async (req, res, next) => {
