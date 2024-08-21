@@ -109,7 +109,12 @@ export const updateCategoryCloud = async (req, res, next) => {
         req.body.image = { secure_url, public_id }
     }
     category.name = req.body.name || category.name
-    category.image = req.body.image || category.image
+    if (req.body.image) {
+        // delete old image from cloudinary
+        await cloudinary.uploader.destroy(category.image.public_id)
+        // update new image
+        category.image = req.body.image
+    }
     const updatedCategory = await category.save()
     return res.status(200).json({ message: messages.category.updatedSuccessfully, success: true, data: updatedCategory })
 }
