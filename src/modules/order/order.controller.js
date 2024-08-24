@@ -1,3 +1,4 @@
+import Stripe from "stripe"
 import { Cart, Coupon, Order, Product } from "../../../db/index.js"
 import { AppError, messages, orderStatus } from "../../utils/index.js"
 
@@ -36,6 +37,7 @@ export const createOrder = async (req, res, next) => {
 
         orderProducts.push({
             productId: product.productId,
+            name:productExist.title,
             title: productExist.title,
             itemPrice: productExist.finalPrice,
             quantity: product.quantity,
@@ -71,11 +73,44 @@ export const createOrder = async (req, res, next) => {
     if (!createdOrder) {
         return next(new AppError(messages.order.failToCreate, 500))
     }
-    if (payment == 'visa') {
+    if(payment === 'visa'){
+        
+    // integrate payment gateway
+    const stripe = new Stripe(process.env.StripeSecretKey);
+    const checkout = await stripe.checkout.sessions.create({
+        success_url: "https://www.google.com",  // replace with your actual success URL
+        cancel_url: "https://www.facebook.com",  // replace with your actual cancel URL
+        payment_method_types: ["card"],
+        mode: "payment",
+        line_items: createdOrder.products.map((product) => {
+            return {
+                price_data: {
+                    currency: "egp",
+                    product_data: {
+                        name: product.title,
+                    },
+                    unit_amount: (product.itemPrice - product.itemPrice * (couponExist.couponAmount / 100))*100, 
+                },
+                quantity: product.quantity,
+            };
+        }),
+    });
 
+    return res.status(200).json({
+        message: messages.order.createdSuccessfully,
+        success: true,
+        data: createdOrder,
+        url: checkout.url,
+    })
     }
-    return res.status(201).json({ message: messages.order.createdSuccessfully, success: true, data: createdOrder })
-}
+    
+        return res.status(200).json({
+            message: messages.order.createdSuccessfully,
+            success: true,
+            data: createdOrder
+        });
+    }    
+
 
 
 // get order

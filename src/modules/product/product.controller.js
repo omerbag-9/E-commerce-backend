@@ -25,7 +25,6 @@ export const createProduct = async (req, res, next) => {
         deleteImage()
         return next(new AppError(messages.category.notFound, 404))
     }
-
     // check subcategory existence
     const subcategoryExist = await Subcategory.findById(subcategory) // {},null
     if (!subcategoryExist) {
@@ -56,7 +55,8 @@ export const createProduct = async (req, res, next) => {
         size: JSON.parse(size),
         colors: JSON.parse(colors),
         stock,
-        createdBy: req.authUser._id
+        createdBy: req.authUser._id,
+        updatedBy: req.authUser._id
     })
     const createdProduct = await product.save()
     if (!createdProduct) {

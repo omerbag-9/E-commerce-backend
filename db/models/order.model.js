@@ -50,6 +50,7 @@ const orderSchema = new Schema({
         enum:['cash','visa'],
         required: true
     },
+    name: String,
     orderPrice: Number,
     finalPrice: Number
 }, { timestamps: true })
