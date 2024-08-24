@@ -4,7 +4,6 @@ import { globalErrorHandling } from "./utils/index.js"
 import * as allRouter from './index.js'
 import dotenv from 'dotenv'
 export const initApp = (app, express) => {
-    dotenv.config({ path: path.resolve('./config/.env') })
     app.use(express.json())
     app.use('/uploads', express.static('uploads'))
 
