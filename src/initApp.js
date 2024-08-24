@@ -4,11 +4,12 @@ import { asyncHandler, globalErrorHandling } from "./utils/index.js"
 import * as allRouter from './index.js'
 import dotenv from 'dotenv'
 import { Cart, Order } from '../db/index.js'
+import Stripe from 'stripe'
 export const initApp = (app, express) => {
     app.use('/webhook', express.raw({ type: 'application/json' }), asyncHandler(
         async (req, res) => {
             const sig = req.headers['stripe-signature'].toString()
-
+            const stripe = new Stripe(process.env.stripeSecretKey)
             let event = stripe.webhooks.constructEvent(req.body, sig, 'whsec_9tc9ABjo2hhKEk0yIgUWdvW8KW0Jkx70');
 
 
