@@ -1,5 +1,5 @@
 import cloudinary from "../../utils/cloudinary.js"
-import { User } from "../../../db/index.js"
+import { Cart, User } from "../../../db/index.js"
 import { ApiFeature, AppError, hashPassword, messages, roles, status } from "../../utils/index.js"
 export const addAdmin = async (req, res, next) => {
     // get data from req
@@ -28,6 +28,7 @@ export const addAdmin = async (req, res, next) => {
     if (!createdUser) {
         return next(new AppError(messages.user.failToCreate, 500))
     }
+    createdUser.password = undefined
     return res.status(201).json({
         message: messages.user.createdSuccessfully,
         success: true,
@@ -73,7 +74,7 @@ export const addUser = async (req, res, next) => {
 
 
 export const getUsers = async (req, res, next) => {
-    const apiFeatures = new ApiFeature(User.find(), req.query).pagination().sort().select().filter();
+    const apiFeatures = new ApiFeature(User.find(), req.query).pagination().sort().select("-password").filter();
     const users = await apiFeatures.mongooseQuery;
     if (!users) {
         return next(new AppError(messages.user.notFound, 404))
@@ -98,7 +99,7 @@ export const deleteUser = async (req, res, next) => {
     }
 
     // check if the requesting user is an admin and if they are trying to delete another admin
-    if (req.authUser.role === 'admin' && user.role === 'admin' || req.authUser.role === 'superadmin' && user.role === 'superadmin') {
+    if (req.authUser.role === 'admin' && user.role === 'admin' || req.authUser.role === 'admin' && user.role === 'superadmin') {
         return next(new AppError(messages.user.notAuthorized, 403)); 
     }
 
@@ -124,14 +125,16 @@ export const updateUser = async (req, res, next) => {
     // get data from req
     const {userId} = req.params
     const {role} = req.body
-    const user = await User.findByIdAndUpdate(userId, {role}, {new: true})
+    const user = await User.findById(userId)
     if (!user) {
         return next(new AppError(messages.user.notFound, 404))
     }
+    user.role = role || user.role
+    const updatedUser = await user.save()
     // send response
     res.status(200).json({
         success: true,
         message: messages.user.updatedSuccessfully,
-        data: user
+        data: updatedUser
     })
 }

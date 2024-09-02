@@ -4,6 +4,7 @@ import { isValid } from "../../middleware/validation.js";
 import { addAdmin, addUser, deleteUser, getUsers, updateUser } from "./admin.controller.js";
 import { isActive } from "../../middleware/isActive.js";
 import {  asyncHandler, cloudUpload, roles } from "../../utils/index.js"
+import { addUserVal } from "./admin.validation.js";
 const adminRouter = Router()
 
 // add admin
@@ -11,7 +12,7 @@ adminRouter.post('/add-admin',
     isAuthenticated(),
     isAuthorized(roles.SUPERADMIN),
     cloudUpload().single('image'),
-    // isValid()
+    isValid(addUserVal),
     isActive(),
     asyncHandler(addAdmin)
 )
@@ -22,6 +23,7 @@ adminRouter.post('/add-user',
     isAuthorized([roles.SUPERADMIN , roles.ADMIN]),
     cloudUpload().single('image'),
     isActive(),
+    isValid(addUserVal),
     asyncHandler(addUser)
 )
 
