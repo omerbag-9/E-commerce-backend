@@ -265,7 +265,7 @@ export const deleteOrder = async (req, res, next) => {
         return next(new AppError(messages.order.failToDelete, 500));
     }
 
-    // Optional: Update product stock if necessary (undoing reserved quantities)
+    // update stock
     for (const product of order.products) {
         await Product.findByIdAndUpdate(product.productId, {
             $inc: { stock: product.quantity }
