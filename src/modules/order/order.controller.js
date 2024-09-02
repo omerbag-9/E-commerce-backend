@@ -28,8 +28,12 @@ export const createOrder = async (req, res, next) => {
         if (!productExist) {
             return next(new AppError(messages.product.notFound, 404))
         }
-        if (!productExist.inStock(product.quantity)) {
-            return next(new AppError("product is out of stock", 400))
+        if (product.quantity > productExist.stock) {
+            if (productExist.stock === 0) {
+                return next(new AppError(`Product ${productExist.title} is out of stock`, 400))
+            } else {
+                return next(new AppError(`Only ${productExist.stock} units of ${productExist.title} are in stock`, 400))
+            }
         }
         // Decrement product stock
         await Product.findByIdAndUpdate(productExist._id, {
