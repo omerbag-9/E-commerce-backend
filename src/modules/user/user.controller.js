@@ -122,5 +122,6 @@ export const getUserProfile = async (req, res, next) => {
     if (!user) {
         return next(new AppError(messages.user.notFound, 404))
     }
+    user.password = undefined
     return res.status(200).json({ success: true, data: user })
 }
